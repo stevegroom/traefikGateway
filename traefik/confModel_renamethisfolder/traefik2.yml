@@ -1,0 +1,37 @@
+http:
+    # Example setup of second traefik instance behind another router.
+    # 
+    # traefik.yourdomain is running on 192.168.1.nn:443
+    # It only allows https inbound connections.
+    # A second instance of traefik is requred to access resources
+    # on a different subnet only accessible via port forwarding. 
+    # In my router (192.168.1.mm) I port forward to 81 to 192.168.86.nn:80
+    # (The router is using port 80 already) 
+
+    routers:
+      traefikinner:
+        entryPoints:
+          # Only allow https
+        - websecure
+        middlewares:
+        # Authentication via OpenIDConnect
+        - keycloakForwardAuth@docker
+        service: traefik2
+        # Publish the inner trafik router
+        rule: Host(`traefikinner.yourdomain`)
+        tls: 
+          certresolver: basic
+          domains:
+          - main: yourdomain
+          sans:
+          - "*.yourdomain"
+  
+    # Add the service
+    services:
+      traefik2:
+        loadBalancer:
+          servers:
+            # IP address of the router and the forwarded port
+          - url: http://192.168.1.mm:81
+          passHostHeader: true
+          hostname: traefikinner.yourdomain

@@ -1,0 +1,148 @@
+version: '3'
+
+networks:
+  default:
+    external:
+      name: traefik
+
+services:
+
+  #############################################################################################
+  #############################################################################################
+  ## JAEGER-COLLECTOR
+  ##
+  ## https://www.jaegertracing.io/
+  ## https://hub.docker.com/r/jaegertracing/jaeger-collector/
+  ## "Monitor and troubleshoot transactions in complex distributed systems"
+  ## 
+  #############################################################################################
+  #############################################################################################
+
+  jaeger-collector:
+    #############################################################################################
+    #############################################################################################
+    ## JAEGER-COLLECTOR
+    ##
+    ## https://www.jaegertracing.io/
+    ## https://hub.docker.com/r/jaegertracing/jaeger-collector/
+    ## 
+    ## Jaeger Collector (Queue, Workers) - Similar to the Agent, the Collector is able to 
+    ## receive spans and place them in an internal queue for processing. This allows the 
+    ## collector to return immediately to the client/agent instead of waiting for the span 
+    ## to make its way to the storage.
+    ##
+    #############################################################################################
+    #############################################################################################
+    image: jaegertracing/jaeger-collector
+    # networks:
+    #  - traefik
+    command: ["--cassandra.keyspace=jaeger_v1_dc1", "--cassandra.servers=cassandra", "--collector.zipkin.http-port=9411"]
+    ports:
+      - "14269"
+      - "14268:14268"
+      - "14267"
+      - "14250"
+      - "9411:9411"
+    restart: on-failure
+    depends_on:
+      - cassandra-schema
+
+  jaeger-query:
+    #############################################################################################
+    #############################################################################################
+    ## JAEGER-QUERY
+    ##
+    ## https://www.jaegertracing.io/
+    ## 
+    ## Query (Query Service) - Query is a service that retrieves traces from storage.
+    ##
+    #############################################################################################
+    #############################################################################################
+    image: jaegertracing/jaeger-query
+    # networks:
+    #   - traefik
+    command: ["--cassandra.keyspace=jaeger_v1_dc1", "--cassandra.servers=cassandra"]
+    ports:
+      - "16686:16686"
+      - "16687"
+    restart: on-failure
+    depends_on:
+      - cassandra-schema
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jaeger.rule=Host(`jaeger.grooms.page`)"
+      - "traefik.http.routers.jaeger.entrypoints=websecure"
+      - "traefik.port=16686"
+
+      - "traefik.http.routers.jaeger.tls=true"
+      - "traefik.http.routers.jaeger.tls.certresolver=basic"
+      - "traefik.http.routers.jaeger.tls.domains[0].main=grooms.page"
+      - "traefik.http.routers.jaeger.tls.domains[0].sans=*.grooms.page"
+      
+      # Forward authentication to keycloak
+      - "traefik.http.routers.jaeger.middlewares=keycloakForwardAuth"
+#      - "traefik.http.middlewares.jaeger.forwardauth.address=http://traefik-forward-auth:4181/auth" 
+#      - "traefik.http.middlewares.jaeger.forwardauth.trustForwardHeader=true"
+#      - "traefik.http.middlewares.jaeger.forwardauth.authResponseHeaders=X-Auth-User, X-Secret"
+#      - "traefik.http.middlewares.jaeger.forwardauth.tls.insecureSkipVerify=true"
+      - "traefik.docker.network=traefik"
+
+  jaeger-agent:
+    #############################################################################################
+    #############################################################################################
+    ## JAEGER-AGENT
+    ##
+    ## https://www.jaegertracing.io/
+    ## 
+    ## Jaeger Agent (Server Queue, Processor Workers) - The Jaeger agent is a network daemon that 
+    ## listens for spans sent over User Datagram Protocol (UDP), which it batches and sends to the 
+    ## collector. The agent is meant to be placed on the same host as the instrumented 
+    ## application. This is typically accomplished by having a sidecar in container environments 
+    ## like Kubernetes
+    ##
+    #############################################################################################
+    #############################################################################################
+    image: jaegertracing/jaeger-agent
+    # networks:
+    #   - traefik
+    command: ["--reporter.grpc.host-port=jaeger-collector:14250"]
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+    restart: on-failure
+    depends_on:
+      - jaeger-collector
+
+  cassandra:
+    #############################################################################################
+    #############################################################################################
+    ## CASSANDRA
+    ##
+    ## https://www.jaegertracing.io/
+    ## 
+    ## Persistance layer
+    ##
+    #############################################################################################
+    #############################################################################################
+    image: cassandra:3.9
+    # networks:
+    #   - traefik
+
+  cassandra-schema:
+    #############################################################################################
+    #############################################################################################
+    ## CASSANDRA-SCHEMA
+    ##
+    ## https://www.jaegertracing.io/
+    ## 
+    ## Persistance layer schema creation
+    ##
+    #############################################################################################
+    #############################################################################################
+    image: jaegertracing/jaeger-cassandra-schema
+    # networks:
+    #   - traefik
+    depends_on:
+      - cassandra

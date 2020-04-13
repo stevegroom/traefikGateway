@@ -1,0 +1,7 @@
+# Dynamic conf to create a basicAuth middleware using .htpassword encoded users and passwords.
+http:
+  # Add the middleware
+  middlewares:
+    usersfile:
+      basicAuth:
+        usersFile: /conf/usersfile.htpasswd

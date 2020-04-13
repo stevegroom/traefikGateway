@@ -1,0 +1,9 @@
+/traefik/letsencrypt/acme.json
+/traefik/conf/.*
+/traefik/conf/*
+/prometheus
+.env
+/keycloakBackup/*
+traefikGateway.code-workspace
+.vscode
+DONTREADME.md

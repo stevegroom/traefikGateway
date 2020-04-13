@@ -1,0 +1,42 @@
+http:
+    # Example setup of an http web service behind a simple router.
+    # 
+    # traefik.yourdomain is running on 192.168.1.nn:443
+    # It only allows https inbound connections.
+    #
+    # A second instance of traefik is requred to access resources
+    # on a different subnet only accessible via port forwarding. 
+    # In my router (192.168.1.mm) I port forward to 81 to 192.168.86.nn:80
+    # (The router is using port 80 already) 
+    # All services I want to publish on the 192.168.86/24 network are configured
+    # traefikinner.
+    # 
+    # Create this filebased router and service to reach the related router and service
+    # running on the traefikinner instance.
+
+    routers:
+      yourpublishedname:
+        entryPoints:
+          # Only allow https
+        - websecure
+        middlewares:
+          # Authentication via OpenIDConnect
+        - keycloakForwardAuth@docker
+        service: yourservicename
+        rule: Host(`yourpublishedname.yourdomain`)
+        tls: 
+          certresolver: basic
+          domains:
+          - main: yourdomain
+            sans:
+            - "*.yourdomain"
+  
+    # Add the service
+    services:
+      yourservicename:
+        loadBalancer:
+          servers:
+            # The router and port that is forwarded to traefikinner's http
+          - url: http://192.168.1.mm:81
+          passHostHeader: true
+          hostname: yourpublishedname.yourdomain 

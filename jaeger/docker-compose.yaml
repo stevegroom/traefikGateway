@@ -70,14 +70,14 @@ services:
       - cassandra-schema
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.jaeger.rule=Host(`jaeger.grooms.page`)"
+      - "traefik.http.routers.jaeger.rule=Host(`jaeger.${DOMAINNAME}`)"
       - "traefik.http.routers.jaeger.entrypoints=websecure"
       - "traefik.port=16686"
 
       - "traefik.http.routers.jaeger.tls=true"
       - "traefik.http.routers.jaeger.tls.certresolver=basic"
-      - "traefik.http.routers.jaeger.tls.domains[0].main=grooms.page"
-      - "traefik.http.routers.jaeger.tls.domains[0].sans=*.grooms.page"
+      - "traefik.http.routers.jaeger.tls.domains[0].main=${DOMAINNAME}"
+      - "traefik.http.routers.jaeger.tls.domains[0].sans=*.${DOMAINNAME}"
       
       # Forward authentication to keycloak
       - "traefik.http.routers.jaeger.middlewares=keycloakForwardAuth"

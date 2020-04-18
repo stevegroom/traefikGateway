@@ -25,7 +25,7 @@ http:
         service: yourservicename
         rule: Host(`yourpublishedname.yourdomain`)
         tls: 
-          certresolver: basic
+          certresolver: leresolver
           domains:
           - main: yourdomain
             sans:

@@ -20,7 +20,7 @@ http:
         # Publish the inner trafik router
         rule: Host(`traefikinner.yourdomain`)
         tls: 
-          certresolver: basic
+          certresolver: leresolver
           domains:
           - main: yourdomain
           sans:

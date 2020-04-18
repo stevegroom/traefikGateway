@@ -75,7 +75,7 @@ services:
       - "traefik.port=16686"
 
       - "traefik.http.routers.jaeger.tls=true"
-      - "traefik.http.routers.jaeger.tls.certresolver=basic"
+      - "traefik.http.routers.jaeger.tls.certresolver=leresolver"
       - "traefik.http.routers.jaeger.tls.domains[0].main=${DOMAINNAME}"
       - "traefik.http.routers.jaeger.tls.domains[0].sans=*.${DOMAINNAME}"
       

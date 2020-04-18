@@ -4,6 +4,7 @@
 /prometheus
 .env
 /keycloakBackup/*
-traefikGateway.code-workspace
+*.code-workspace
 .vscode
 DONTREADME.md
+docker-compose.override.yml

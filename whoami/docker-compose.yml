@@ -31,6 +31,6 @@ services:
 
       # TLS is used to protect the domain
       - "traefik.http.routers.whoami.tls=true"
-      - "traefik.http.routers.whoami.tls.certresolver=basic"
+      - "traefik.http.routers.whoami.tls.certresolver=leresolver"
       - "traefik.http.routers.whoami.tls.domains[0].main=${DOMAINNAME}"
       - "traefik.http.routers.whoami.tls.domains[0].sans=*.${DOMAINNAME}"

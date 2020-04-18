@@ -6,7 +6,7 @@ version: '3.7'
   ## Traefik/LetsEncrypt/KeyCloak/Jaeger (OUTER)
   ## 
   ## .env You have to create .env files with
-  ## all the parameters pre-filled before starting
+  ## all the parameters pre-filled before starting
   ## this docker-compose.yml file.
   ##
   ## .env in the same directory as docker-compose.yml
@@ -183,7 +183,7 @@ services:
 
       # TLS is used to protect the domain
       - "traefik.http.routers.keycloak.tls=true"
-      - "traefik.http.routers.keycloak.tls.certresolver=basic"
+      - "traefik.http.routers.keycloak.tls.certresolver=leresolver"
       - "traefik.http.routers.keycloak.tls.domains[0].main=${DOMAINNAME}"
       - "traefik.http.routers.keycloak.tls.domains[0].sans=*.${DOMAINNAME}"
 
@@ -268,7 +268,7 @@ services:
 
       # TLS is used to protect the domain      
       - "traefik.http.routers.traefik-forward-auth.tls=true"
-      - "traefik.http.routers.traefik-forward-auth.tls.certresolver=basic"
+      - "traefik.http.routers.traefik-forward-auth.tls.certresolver=leresolver"
       - "traefik.http.routers.traefik-forward-auth.tls.domains[0].main=${DOMAINNAME}"
       - "traefik.http.routers.traefik-forward-auth.tls.domains[0].sans=*.${DOMAINNAME}"
 
@@ -303,6 +303,7 @@ services:
 #     - "--ping.entrypoint=pingport"
 
       - "--api"
+      - "--api.debug=true"
 #     - "--api.insecure=true # Enables the web UI"
 
       # Define the ports Traefik listens on
@@ -312,11 +313,11 @@ services:
       - "--entrypoints.pingport.address=:8081"
       - "--entrypoints.ssh.address=:10022"
 
-#     Enable a tls challenge named "basic"
-      - "--certificatesresolvers.basic.acme.email=${CF_API_EMAIL}"
-      - "--certificatesresolvers.basic.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.basic.acme.dnschallenge.provider=cloudflare"
-#     - "--certificatesresolvers.basic.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+#     Enable a tls challenge named "leresolver"
+      - "--certificatesresolvers.leresolver.acme.email=${CF_API_EMAIL}"
+      - "--certificatesresolvers.leresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.leresolver.acme.dnschallenge.provider=cloudflare"
+#     - "--certificatesresolvers.leresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
 
 #     - "--file"
 #     - "--resolvers=[192.168.1.1:53,1.1.1.1:53,]"
@@ -370,7 +371,6 @@ services:
       - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAINNAME}`)"
 
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.tls.certresolver=leresolver"
       - "traefik.http.routers.traefik.entrypoints=websecure"
 
       # Basic authentication by file
@@ -389,7 +389,7 @@ services:
 
       # Certificate name and san
       - "traefik.http.routers.traefik.tls=true"
-      - "traefik.http.routers.traefik.tls.certresolver=basic"
+      - "traefik.http.routers.traefik.tls.certresolver=leresolver"
       - "traefik.http.routers.traefik.tls.domains[0].main=${DOMAINNAME}"
       - "traefik.http.routers.traefik.tls.domains[0].sans=*.${DOMAINNAME}"
 
@@ -432,6 +432,6 @@ services:
 
       # TLS is used to protect the domain
       - "traefik.http.routers.whoami.tls=true"
-      - "traefik.http.routers.whoami.tls.certresolver=basic"
+      - "traefik.http.routers.whoami.tls.certresolver=leresolver"
       - "traefik.http.routers.whoami.tls.domains[0].main=${DOMAINNAME}"
       - "traefik.http.routers.whoami.tls.domains[0].sans=*.${DOMAINNAME}"

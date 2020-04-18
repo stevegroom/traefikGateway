@@ -1,4 +1,6 @@
-# Traefik setup with security first
+# Traefik setup with security first - Main Repo
+
+<https://github.com/stevegroom/traefikGateway.git>
 
 ## Introduction
 
@@ -10,6 +12,8 @@ This repo is the result of trying to secure aspects of my home network such as:
 - Using cloud based devops services to trigger builds on premises
 
 I decided to use Traefik but needed to add some other services to complete the setup. Most of this work is not original, but pulling it all into a single solution took me quite a lot of time, so hopefully this will help some of you.
+
+![Traefik in my home network](./traefikAtHome.png)
 
 ### Exposing services
 
@@ -100,6 +104,12 @@ Note, as docker compose does not wait on services to be operational, there are s
 You should be able to access https://traefik.yourdomain and be requested userid / password via basic auth.
 
 https://keycloak.yourdomain will also be running, so be sure to set up the initial password before anyone else does!
+
+## Drilling deeper
+
+I needed to route queries from the internet through _two_ traefik instances, this repo creates the secure ingress point, and a second repo <https://github.com/stevegroom/traefikGatewayInner.git> runs on the inner subnet to route those services.
+
+Manual yml conf entries are created in this repo to map to the services that are exposed on TraefikGatwayInner.
 
 ## Odds 'n Ends
 

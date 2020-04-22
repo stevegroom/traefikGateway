@@ -1,9 +1,9 @@
 version: '3'
 
 networks:
-  default:
-    external:
-      name: traefik
+  traefik:
+    external: true
+    name: traefik
 
 services:
 
@@ -81,10 +81,7 @@ services:
       
       # Forward authentication to keycloak
       - "traefik.http.routers.jaeger.middlewares=keycloakForwardAuth"
-#      - "traefik.http.middlewares.jaeger.forwardauth.address=http://traefik-forward-auth:4181/auth" 
-#      - "traefik.http.middlewares.jaeger.forwardauth.trustForwardHeader=true"
-#      - "traefik.http.middlewares.jaeger.forwardauth.authResponseHeaders=X-Auth-User, X-Secret"
-#      - "traefik.http.middlewares.jaeger.forwardauth.tls.insecureSkipVerify=true"
+
       - "traefik.docker.network=traefik"
 
   jaeger-agent:

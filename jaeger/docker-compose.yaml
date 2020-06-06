@@ -1,4 +1,4 @@
-version: '3'
+version: '3.7'
 
 networks:
   traefik:
@@ -34,8 +34,8 @@ services:
     #############################################################################################
     #############################################################################################
     image: jaegertracing/jaeger-collector
-    # networks:
-    #  - traefik
+    networks:
+      - traefik
     command: ["--cassandra.keyspace=jaeger_v1_dc1", "--cassandra.servers=cassandra", "--collector.zipkin.http-port=9411"]
     ports:
       - "14269"
@@ -59,8 +59,8 @@ services:
     #############################################################################################
     #############################################################################################
     image: jaegertracing/jaeger-query
-    # networks:
-    #   - traefik
+    networks:
+      - traefik
     command: ["--cassandra.keyspace=jaeger_v1_dc1", "--cassandra.servers=cassandra"]
     ports:
       - "16686:16686"
@@ -100,8 +100,8 @@ services:
     #############################################################################################
     #############################################################################################
     image: jaegertracing/jaeger-agent
-    # networks:
-    #   - traefik
+    networks:
+      - traefik
     command: ["--reporter.grpc.host-port=jaeger-collector:14250"]
     ports:
       - "5775:5775/udp"
@@ -124,8 +124,8 @@ services:
     #############################################################################################
     #############################################################################################
     image: cassandra:3.9
-    # networks:
-    #   - traefik
+    networks:
+      - traefik
 
   cassandra-schema:
     #############################################################################################
@@ -139,7 +139,7 @@ services:
     #############################################################################################
     #############################################################################################
     image: jaegertracing/jaeger-cassandra-schema
-    # networks:
-    #   - traefik
+    networks:
+      - traefik
     depends_on:
       - cassandra

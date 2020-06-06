@@ -46,6 +46,7 @@ version: '3.7'
 
 networks:
   traefik:
+    external: true
     name: traefik
   keycloak:
     name: keycloak
@@ -73,6 +74,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 #       - /etc/localtime:/etc/localtime:ro
     environment:
+      - LOG_MIN_MESSAGES=INFO
       - DB_VENDOR=postgres
       - DB_DATABASE=keycloak
       - DB_ADDR=keycloak-db
@@ -86,6 +88,7 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
 #    restart: always
 
+    command: ["postgres", "-c", "log_min_messages=INFO"]
 
   #########################################################
   #########################################################
@@ -148,7 +151,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - KEYCLOAK_LOGLEVEL=WARN
+      - KEYCLOAK_LOGLEVEL=WARNING
 # https://geek-cookbook.funkypenguin.co.nz/recipes/keycloak/setup-oidc-provider/
       - KEYCLOAK_USER=${KEYCLOAK_USER}
       - KEYCLOAK_PASSWORD=${KEYCLOAK_PASSWORD}
@@ -179,6 +182,11 @@ services:
 
       # The application (i.e. this container)
       - "traefik.http.routers.keycloak.service=keycloak"
+
+      # Select middleware chain https-only and keycloakforwardauth
+      #- "traefik.http.routers.keycloak.middlewares=keycloakForwardAuth"
+      #- "traefik.http.routers.keycloak.middlewares=secured"
+
       - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
 
       # TLS is used to protect the domain
@@ -204,7 +212,7 @@ services:
   #########################################################
   #########################################################
   traefik-forward-auth:
-    image: thomseddon/traefik-forward-auth
+    image: thomseddon/traefik-forward-auth:2
 
 #   image: thomseddon/traefik-forward-auth
 #   image: funkypenguin/traefik-forward-auth
@@ -215,6 +223,7 @@ services:
       - 4181:4181
     environment:
       - DEFAULT_PROVIDER=oidc
+      - DEFAULT_ACTION=auth
       # This is based on using the Master realm. Create a new client, this will go into your CLIENT_ID, CLIENT_SECRET details.
       - PROVIDERS_OIDC_ISSUER_URL=${PROVIDERS_OIDC_ISSUER_URL}
       - PROVIDERS_OIDC_CLIENT_ID=${PROVIDERS_OIDC_CLIENT_ID}
@@ -224,12 +233,15 @@ services:
       - AUTH_HOST=auth.${DOMAINNAME}
       - URL_PATH=/_oauth
       - COOKIE_DOMAIN=${DOMAINNAME}
+      - COOKIE_NAME=_forward_auth
+      - CSRF_COOKIE_NAME=_forward_auth_csrf
       - LOG_LEVEL=warn
 # https://github.com/thomseddon/traefik-forward-auth/blob/master/examples/docker-compose-oidc.yml
 # https://github.com/thomseddon/traefik-forward-auth#user-restriction
 #      WHITELIST: ${EMAIL}
 #      COOKIE_SECURE: "true"
       - LIFETIME=2592000
+#      - LIFETIME=43200 # 12 hours
     restart: always
     labels:
       - "traefik.enable=true"
@@ -273,10 +285,16 @@ services:
       - "traefik.http.routers.traefik-forward-auth.tls.domains[0].sans=*.${DOMAINNAME}"
 
       # Forward authentication to keycloak      
-      - "traefik.http.routers.traefik-forward-auth.middlewares=keycloakForwardAuth"
+      #- "traefik.http.routers.traefik-forward-auth.middlewares=keycloakForwardAuth"
+      - "traefik.http.routers.traefik-forward-auth.middlewares=myForwardAuth@file"
+
       - "traefik.http.middlewares.keycloakForwardAuth.forwardauth.address=http://traefik-forward-auth:4181/auth" 
+#      - "traefik.http.routers.traefik-forward-auth.middlewares=secured"
+#      - traefik.http.middlewares.secured.chain.middlewares=https-only@docker,keycloakForwardAuth@docker
+#      - traefik.http.middlewares.https-only.redirectscheme.scheme=https      
       - "traefik.http.middlewares.keycloakForwardAuth.forwardauth.trustForwardHeader=true"
       - "traefik.http.middlewares.keycloakForwardAuth.forwardauth.authResponseHeaders=X-Auth-User, X-Secret"
+#      - "traefik.http.middlewares.keycloakForwardAuth.forwardauth.authResponseHeaders=X-Forwarded-User, X-WebAuth-User"
       - "traefik.http.middlewares.keycloakForwardAuth.forwardauth.tls.insecureSkipVerify=true"
     depends_on:
       - keycloak
@@ -297,10 +315,10 @@ services:
     image: traefik:v2.2
     container_name: traefik
     command: 
-#     - --accesslog=true
-      - "--log.level=DEBUG"
-      - "--ping=false"
-#     - "--ping.entrypoint=pingport"
+#     - "--accesslog=true"
+      - "--log.level=WARNING"
+      - "--ping=true"
+#      - "--ping.entrypoint=pingport"
 
       - "--api"
       - "--api.debug=true"
@@ -309,10 +327,14 @@ services:
       # Define the ports Traefik listens on
       - "--entrypoints.web.address=:80" #Declares the web entrypoint in Traefik
       - "--entrypoints.websecure.address=:443" #Declares the websecure entrypoint in Traefik
-      - "--entrypoints.apiport.address=:8080" #Declares the webapi entrypoint in Traefik
-      - "--entrypoints.pingport.address=:8081"
-      - "--entrypoints.ssh.address=:10022"
-
+      - "--entrypoints.apiport.address=:10080" #Declares the webapi entrypoint in Traefik
+      - "--entrypoints.pingport.address=:10081"
+      - "--entrypoints.ssh.address=:10022/tcp"
+      - "--entrypoints.httpauthforward.address=:4181"
+      
+      - "--entrypoints.ssh.proxyProtocol.insecure=true"
+      - "--entrypoints.ssh.forwardedHeaders.insecure=true"
+        
 #     Enable a tls challenge named "leresolver"
       - "--certificatesresolvers.leresolver.acme.email=${CF_API_EMAIL}"
       - "--certificatesresolvers.leresolver.acme.storage=/letsencrypt/acme.json"
@@ -324,7 +346,6 @@ services:
 
       - "--global.sendAnonymousUsage=true"
 
-
       # Providers
       # Tell Traefik to listen to docker
       - "--providers.docker=true" 
@@ -333,14 +354,14 @@ services:
       - "--providers.file.directory=/conf"
       - "--providers.file.watch=true"
       
-      - "--tracing=false"
-      # - "--tracing.serviceName=traefik"
-      # - "--tracing.jaeger=true"
-      # - "--tracing.jaeger.samplingServerURL=http://localhost:5778/sampling"
-      # - "--tracing.jaeger.samplingType=const"
-      # - "--tracing.jaeger.traceContextHeaderName=uber-trace-id"
-      # - "--tracing.jaeger.collector.endpoint=http://jaeger-collector:14268/api/traces?format=jaeger.thrift"
-      # - "--tracing.jaeger.samplingParam=1.0"
+      - "--tracing=true"
+      - "--tracing.serviceName=traefik"
+      - "--tracing.jaeger=true"
+      - "--tracing.jaeger.samplingServerURL=http://localhost:5778/sampling"
+      - "--tracing.jaeger.samplingType=const"
+      - "--tracing.jaeger.samplingParam=1.0"
+      - "--tracing.jaeger.traceContextHeaderName=uber-trace-id"
+      - "--tracing.jaeger.collector.endpoint=http://jaeger-collector:14268/api/traces?format=jaeger.thrift"
 
     environment:
       TZ: "Europe/Zurich"
@@ -349,11 +370,12 @@ services:
       CF_ZONE_API_TOKEN: ${CF_ZONE_API_TOKEN}
 
     ports:
-      - "10022:10022"
-      - "80:80"
-      - "443:443"
-      - "8080:8080" # The Web UI (enabled by --api.insecure=true)
-
+      - "80:80"       # HTTP Port  - web
+      - "443:443"     # HTTPS Port - websecure
+      - "10022:10022" # TCP Port   - ssh
+      - "10080:10080" # API Port   - apiport --api.insecure=true)
+      - "10081:10081" # Ping port  - pingport
+      
     volumes:
       # So that Traefik can listen to the Docker events
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -370,13 +392,21 @@ services:
       # Define the URL to access this app
       - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAINNAME}`)"
 
+      # Define the URL to access this app - split API and dashboard as different routes
+#      - "traefik.http.routers.traefik.rule`(Host(`traefik.${DOMAINNAME}`) && PathPrefix(`/dashboard`) )"
+#      - "traefik.http.routers.api.rule`(Host(`traefik.${DOMAINNAME}`) && PathPrefix(`/api`) )"
+     
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.entrypoints=websecure"
+
+      # Expose Traefik api to APIPort only.
+      - "traefik.http.routers.api.entrypoints=websecure"
+      #- "traefik.http.routers.api.middlewares=websecure"
 
       # Basic authentication by file
       # - "traefik.http.routers.traefik.middlewares=usersfile@file"
       # Forward authentication to keycloak for logon
-      - "traefik.http.routers.traefik.middlewares=keycloakForwardAuth@docker"
+      - "traefik.http.routers.traefik.middlewares=myForwardAuth@file"
 
 #      - "traefik.http.routers.traefik.service=traefik"
 #      - "traefik.http.services.traefik.loadbalancer.server.port=4181"
@@ -401,12 +431,12 @@ services:
   #########################################################
   #########################################################
   ##
-  ## WHOAMI
+  ## WHOAMI1
   ## Test app to show IP address and other discovered 
   ## information
   #########################################################
   #########################################################
-  whoami:
+  whoami1:
     # A container that exposes an API to show its IP address
     image: containous/whoami
     networks:
@@ -418,20 +448,20 @@ services:
       - "traefik.port=80"
 
       # Define the URL to access this app
-      - "traefik.http.routers.whoami.rule=Host(`whoami.${DOMAINNAME}`)"
+      - "traefik.http.routers.whoami1.rule=Host(`whoami1.${DOMAINNAME}`)"
 
       # Access via HTTPS only
-      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami1.entrypoints=websecure"
 
       # Forward authentication to keycloak for logon
-      - "traefik.http.routers.whoami.middlewares=keycloakForwardAuth@docker"
+      - "traefik.http.routers.whoami1.middlewares=myForwardAuth@file"
       
       # The application (i.e. this container)
-      - "traefik.http.routers.whoami.service=whoami"
-      - "traefik.http.services.whoami.loadbalancer.server.port=80"
+      - "traefik.http.routers.whoami1.service=whoami1"
+      - "traefik.http.services.whoami1.loadbalancer.server.port=80"
 
       # TLS is used to protect the domain
-      - "traefik.http.routers.whoami.tls=true"
-      - "traefik.http.routers.whoami.tls.certresolver=leresolver"
-      - "traefik.http.routers.whoami.tls.domains[0].main=${DOMAINNAME}"
-      - "traefik.http.routers.whoami.tls.domains[0].sans=*.${DOMAINNAME}"
+      - "traefik.http.routers.whoami1.tls=true"
+      - "traefik.http.routers.whoami1.tls.certresolver=leresolver"
+      - "traefik.http.routers.whoami1.tls.domains[0].main=${DOMAINNAME}"
+      - "traefik.http.routers.whoami1.tls.domains[0].sans=*.${DOMAINNAME}"

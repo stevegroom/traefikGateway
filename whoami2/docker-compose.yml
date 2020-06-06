@@ -1,0 +1,37 @@
+version: '3.7'
+
+networks:
+  traefik:
+    external: true
+    name: traefik
+
+services:
+  whoami2:
+    # A container that exposes an API to show its IP address
+    image: containous/whoami
+    networks:
+      traefik:
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.port=80"
+
+      # Define the URL to access this app
+      - "traefik.http.routers.whoami2.rule=Host(`whoami2.${DOMAINNAME}`)"
+
+      # Access via HTTPS only
+      - "traefik.http.routers.whoami2.entrypoints=websecure"
+
+      # Forward authentication to keycloak for logon
+      #- "traefik.http.routers.whoami2.middlewares=keycloakForwardAuth@docker"
+      
+      # The application (i.e. this container)
+      - "traefik.http.routers.whoami2.service=whoami2"
+      - "traefik.http.services.whoami2.loadbalancer.server.port=80"
+
+      # TLS is used to protect the domain
+      - "traefik.http.routers.whoami2.tls=true"
+      - "traefik.http.routers.whoami2.tls.certresolver=leresolver"
+      - "traefik.http.routers.whoami2.tls.domains[0].main=${DOMAINNAME}"
+      - "traefik.http.routers.whoami2.tls.domains[0].sans=*.${DOMAINNAME}"

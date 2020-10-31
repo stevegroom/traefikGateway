@@ -1,0 +1,306 @@
+######################################################################
+##
+## Define default global variables with lines like:
+## 	var=value [, var=value]*
+## These values will be used for each following host unless overridden
+## with a local variable definition.
+##
+## Define local variables for one or more hosts with:
+## 	var=value [, var=value]* host.and.domain[,host2.and.domain...]
+##
+## Lines can be continued on the following line by ending the line
+## with a \
+##
+##
+## Warning: not all supported routers or dynamic DNS services
+##          are mentioned here.
+##
+######################################################################
+daemon=1800				# check every 300 seconds
+syslog=yes				# log update msgs to syslog
+mail=root				# mail all msgs to root
+mail-failure=root			# mail failed update msgs to root
+pid=@runstatedir@/ddclient.pid		# record PID in file.
+ssl=yes					# use ssl-support.  Works with
+					# ssl-library
+# postscript=script			# run script after updating.  The
+					# new IP is added as argument.
+#
+#use=watchguard-soho,        fw=192.168.111.1:80	# via Watchguard's SOHO FW
+#use=netopia-r910,           fw=192.168.111.1:80	# via Netopia R910 FW
+#use=smc-barricade,          fw=192.168.123.254:80	# via SMC's Barricade FW
+#use=netgear-rt3xx,          fw=192.168.0.1:80		# via Netgear's internet FW
+#use=linksys,                fw=192.168.1.1:80		# via Linksys's internet FW
+#use=maxgate-ugate3x00,      fw=192.168.0.1:80		# via MaxGate's UGATE-3x00  FW
+#use=elsa-lancom-dsl10,      fw=10.0.0.254:80		# via ELSA LanCom DSL/10 DSL Router
+#use=elsa-lancom-dsl10-ch01, fw=10.0.0.254:80		# via ELSA LanCom DSL/10 DSL Router
+#use=elsa-lancom-dsl10-ch02, fw=10.0.0.254:80		# via ELSA LanCom DSL/10 DSL Router
+#use=alcatel-stp,            fw=10.0.0.138:80           # via Alcatel Speed Touch Pro
+#use=xsense-aero,            fw=192.168.1.1:80          # via Xsense Aero Router
+#use=allnet-1298,            fw=192.168.1.1:80          # via AllNet 1298 DSL Router
+#use=3com-oc-remote812,	     fw=192.168.0.254:80	# via 3com OfficeConnect Remote 812
+#use=e-tech,                 fw=192.168.1.1:80          # via E-tech Router
+#use=cayman-3220h,           fw=192.168.0.1:1080        # via Cayman 3220-H DSL Router
+#
+#fw-login=admin,             fw-password=XXXXXX		# FW login and password
+#
+## To obtain an IP address from FW status page (using fw-login, fw-password)
+#use=fw, fw=192.168.1.254/status.htm, fw-skip='IP Address' # found after IP Address
+#
+## To obtain an IP address from Web status page (using the proxy if defined)
+## by default, checkip.dyndns.org is used if you use the dyndns protocol.
+## Using use=web is enough to get it working.
+## WARNING: set deamon at least to 600 seconds if you use checkip or you could
+## get banned from their service.
+#use=web, web=checkip.dyndns.org/, web-skip='IP Address' # found after IP Address
+use=web, web=checkip.dyndns.org/,
+#
+#use=ip,                     ip=127.0.0.1	# via static IP's
+#use=if,                     if=eth0		# via interfaces
+#use=web					# via web
+#
+protocol=dyndns2				# default protocol
+#proxy=fasthttp.sympatico.ca:80			# default proxy
+#server=members.dyndns.org			# default server
+#server=members.dyndns.org:8245			# default server (bypassing proxies)
+
+#login=your-login				# default login
+#password=test					# default password
+#mx=mx.for.your.host				# default MX
+#backupmx=yes|no				# host is primary MX?
+#wildcard=yes|no				# add wildcard CNAME?
+
+##
+## dyndns.org dynamic addresses
+##
+## (supports variables: wildcard,mx,backupmx)
+##
+# server=members.dyndns.org,		\
+# protocol=dyndns2			\
+# your-dynamic-host.dyndns.org
+
+##
+## dyndns.org static addresses
+##
+## (supports variables: wildcard,mx,backupmx)
+##
+# static=yes,				\
+# server=members.dyndns.org,		\
+# protocol=dyndns2			\
+# your-static-host.dyndns.org
+
+##
+##
+## dyndns.org custom addresses
+##
+## (supports variables: wildcard,mx,backupmx)
+##
+# custom=yes,				\
+# server=members.dyndns.org,		\
+# protocol=dyndns2			\
+# your-domain.top-level,your-other-domain.top-level
+
+##
+## ZoneEdit (zoneedit.com)
+##
+# server=dynamic.zoneedit.com, 		\
+# protocol=zoneedit1,			\
+# login=your-zoneedit-login,  		\
+# password=your-zoneedit-password	\
+# your.any.domain,your-2nd.any.dom
+
+##
+## EasyDNS (easydns.com)
+##
+# server=members.easydns.com, 		\
+# protocol=easydns,			\
+# login=your-easydns-login,  		\
+# password=your-easydns-password	\
+# your.any.domain,your-2nd.any.domain
+
+##
+## dslreports.com dynamic-host monitoring
+##
+# server=members.dslreports.com		\
+# protocol=dslreports1,			\
+# login=dslreports-login,		\
+# password=dslreports-password		\
+# dslreports-unique-id
+
+##
+## OrgDNS.org account-configuration
+##
+# use=web, web=members.orgdns.org/nic/ip
+# server=www.orgdns.org 		\
+# protocol=dyndns2 			\
+# login=yourLoginName 			\
+# password=yourPassword 		\
+# yourSubdomain.orgdns.org
+
+##
+## NameCheap (namecheap.com)
+##
+# protocol=namecheap,				\
+# server=dynamicdns.park-your-domain.com,	\
+# login=my-namecheap.com-login,			\
+# password=my-namecheap.com-password		\
+# fully.qualified.host
+
+##
+## NearlyFreeSpeech.NET (nearlyfreespeech.net)
+##
+# protocol = nfsn,                      \
+# login=member-login,                   \
+# password=api-key,                     \
+# zone=example.com                      \
+# example.com,subdomain.example.com
+
+##
+##
+## Loopia (loopia.se)
+##
+# use=web
+# web=loopia
+# protocol=dyndns2
+# server=dns.loopia.se
+# script=/XDynDNSServer/XDynDNS.php
+# login=my-loopia.se-login
+# password=my-loopia.se-password
+# my.domain.tld,other.domain.tld
+
+##
+## NoIP (noip.com)
+##
+# protocol=noip,                        \
+# ssl=yes,                              \
+# server=dynupdate.no-ip.com,           \
+# login=your-noip-login,                \
+# password=your-noip-password,          \
+# your-host.domain.com, your-2nd-host.domain.com
+
+##
+## ChangeIP (changeip.com)
+##
+## single host update
+# protocol=changeip,                   \
+# login=my-my-changeip.com-login,      \
+# password=my-changeip.com-password    \
+# myhost.changeip.org
+
+##
+## CloudFlare (www.cloudflare.com)
+##
+#protocol=cloudflare,        \
+#zone=,            \
+#ttl=1,                      \
+#login=,     \ # Only needed if you are using your global API key.
+#password=,  \ # This is either your global API key, or an API token. If you are using an API token, it must have the permissions "Zone - DNS - Edit" and "Zone - Zone - Read". The Zone resources must be "Include - All zones".
+#domain.tld,my.domain.tld
+
+
+##
+## Gandi (gandi.net)
+##
+## Single host update
+# protocol=gandi,                      \
+# zone=example.com,                    \
+# password=my-gandi-api-key,           \
+# ttl=3h                               \
+# myhost.example.com
+
+##
+## Google Domains (www.google.com/domains)
+##
+# protocol=googledomains,
+# login=my-auto-generated-username,
+# password=my-auto-generated-password
+# my.domain.tld, otherhost.domain.tld
+
+##
+## Duckdns (http://www.duckdns.org/)
+##
+#
+# password=my-auto-generated-password
+# protocol=duckdns hostwithoutduckdnsorg
+
+##
+## Freemyip (http://freemyip.com/)
+##
+#
+# protocol=freemyip,
+# password=my-token
+# myhost
+
+##
+## MyOnlinePortal (http://myonlineportal.net)
+##
+# protocol=dyndns2
+# ssl=yes
+# # ipv6=yes # optional
+# use=web, web=myonlineportal.net/checkip
+# # use=if, if=eth0     # alternative to use=web
+# # if-skip=Scope:Link  # alternative to use=web
+# login=your-myonlineportal-username
+# password=your-myonlineportal-password
+# domain.myonlineportal.net
+
+##
+## nsupdate.info IPV4(https://www.nsupdate.info)
+##
+#protocol=dyndns2
+#use=web, web=http://ipv4.nsupdate.info/myip
+#server=ipv4.nsupdate.info
+#login=domain.nsupdate.info
+#password='123'
+#domain.nsupdate.info
+
+##
+## nsupdate.info IPV6 (https://www.nsupdate.info)
+## ddclient releases <= 3.8.1 do not support IPv6
+##
+#protocol=dyndns2
+#usev6=if, if=eth0
+#server=ipv6.nsupdate.info
+#login=domain.nsupdate.info
+#password='123'
+#domain.nsupdate.info
+
+##
+## Yandex.Mail for Domain (domain.yandex.com)
+##
+# protocol=yandex,                      \
+# login=domain.tld,                     \
+# password=yandex-pdd-token             \
+# my.domain.tld,other.domain.tld        \
+
+##
+## DNS Made Easy (https://dnsmadeeasy.com)
+##
+# protocol=dnsmadeeasy,
+# login=your-account-email-address
+# password=your-generated-password
+# your-numeric-record-id-1,your-numeric-record-id-2,...
+
+##
+## OVH DynHost (https://ovh.com)
+##
+# protocol=ovh,
+# login=example.com-dynhostuser,
+# password=your_password
+# test.example.com
+
+##
+## ClouDNS (https://www.cloudns.net)
+##
+# protocol=cloudns, \
+# dynurl=https://ipv4.cloudns.net/api/dynamicURL/?q=Njc1OTE2OjY3Njk0NDM6YTk2, \
+# myhost.example.com
+
+##
+## dinahosting (https://dinahosting.com)
+##
+# protocol=dinahosting, \
+# login=myusername,     \
+# password=mypassword   \
+# myhost.mydomain.com
+

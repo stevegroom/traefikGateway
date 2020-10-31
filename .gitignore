@@ -8,3 +8,5 @@
 .vscode
 DONTREADME.md
 docker-compose.override.yml
+/ddclient/.run
+/ddclient/config/ddclient.conf

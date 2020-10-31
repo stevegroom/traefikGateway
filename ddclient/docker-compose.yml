@@ -1,0 +1,15 @@
+---
+version: "2.1"
+services:
+  ddclient:
+    image: linuxserver/ddclient
+    container_name: ddclient
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London      
+    volumes:
+      - ./config:/etc/ddclient
+    restart: unless-stopped
+
+    command:  ddclient -daemon=0 -debug -verbose -noquiet

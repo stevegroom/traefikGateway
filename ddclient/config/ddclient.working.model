@@ -1,0 +1,17 @@
+use=web
+protocol=cloudflare           ## 
+
+#server=fqdn.of.api.service   ## defaults to api.cloudflare.com/client/v4
+server=api.cloudflare.com/client/v4
+
+#login                        ## login name and password  registered with the service
+login=<cloudflare user email>
+
+#password from:: My Profile -> API Tokens -> Global API Key (38 chars long)
+password=<38charglobalapikeyhere>
+
+#fully.qualified.host         ## the host registered with the service.
+zone=grooms.page
+
+# This (these) must be A-records.
+home.grooms.page

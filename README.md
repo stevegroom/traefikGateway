@@ -131,3 +131,15 @@ python3 extractor.py ./data
 docker stop extractor
 docker rm extractor
 ```
+
+## Traefik messages
+
+### Skipping same configuration
+
+```log
+traefik                 | time="2020-10-31T12:04:52+01:00" level=info msg="Skipping same configuration" providerName=file
+traefik                 | time="2020-10-31T12:04:52+01:00" level=info msg="Skipping same configuration" providerName=file
+```
+
+This means that some config elements found in a file provider are already defined, but are not
+contradicting what is defined previously.

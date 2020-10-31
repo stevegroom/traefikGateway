@@ -51,9 +51,9 @@ networks:
   keycloak:
     name: keycloak
 
-volumes:
-  postgres_data:
-    driver: local
+# volumes:
+#   postgres_data:
+#     driver: local
 
 services:
 
@@ -71,8 +71,10 @@ services:
     networks:
       - keycloak
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data
 #       - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 5432:5432
     environment:
       - LOG_MIN_MESSAGES=INFO
       - DB_VENDOR=postgres
@@ -104,7 +106,7 @@ services:
     networks:
       - keycloak
     volumes:
-      - ${KEYCLOAKBACKUP}/keycloak/database-dump:/dump
+      - ${KEYCLOAKBACKUP}:/dump
 #      - /etc/localtime:/etc/localtime:ro
     environment:
       - PGHOST=keycloak-db
@@ -305,18 +307,18 @@ services:
   #########################################################
   ##
   ## TRAEFIK
-  ## The official v2.2 Traefik docker image
+  ## The official v2.3 Traefik docker image
   ## The Cloud Native Edge Router
   ##
   #########################################################
   #########################################################
   traefik:
     
-    image: traefik:v2.2
+    image: traefik:v2.3
     container_name: traefik
     command: 
 #     - "--accesslog=true"
-      - "--log.level=WARNING"
+      - "--log.level=INFO"
       - "--ping=true"
 #      - "--ping.entrypoint=pingport"
 
@@ -362,6 +364,9 @@ services:
       - "--tracing.jaeger.samplingParam=1.0"
       - "--tracing.jaeger.traceContextHeaderName=uber-trace-id"
       - "--tracing.jaeger.collector.endpoint=http://jaeger-collector:14268/api/traces?format=jaeger.thrift"
+
+      - "--pilot.token=7dfa8bcd-95a5-4140-bef3-8ec0fdfbe004"
+  
 
     environment:
       TZ: "Europe/Zurich"

@@ -226,7 +226,7 @@ services:
     environment:
       - DEFAULT_PROVIDER=oidc
       - DEFAULT_ACTION=auth
-      # This is based on using the Master realm. Create a new client, this will go into your CLIENT_ID, CLIENT_SECRET details.
+      # This is based on using the selected realm. Create a new client, this will go into your CLIENT_ID, CLIENT_SECRET details.
       - PROVIDERS_OIDC_ISSUER_URL=${PROVIDERS_OIDC_ISSUER_URL}
       - PROVIDERS_OIDC_CLIENT_ID=${PROVIDERS_OIDC_CLIENT_ID}
       - PROVIDERS_OIDC_CLIENT_SECRET=${PROVIDERS_OIDC_CLIENT_SECRET}
@@ -307,18 +307,18 @@ services:
   #########################################################
   ##
   ## TRAEFIK
-  ## The official v2.3 Traefik docker image
+  ## The official v2.4 Traefik docker image
   ## The Cloud Native Edge Router
   ##
   #########################################################
   #########################################################
   traefik:
     
-    image: traefik:v2.3
+    image: traefik:v2.4
     container_name: traefik
     command: 
 #     - "--accesslog=true"
-      - "--log.level=INFO"
+#      - "--log.level=DEBUG"
       - "--ping=true"
 #      - "--ping.entrypoint=pingport"
 

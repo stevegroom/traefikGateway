@@ -10,3 +10,10 @@ DONTREADME.md
 docker-compose.override.yml
 /ddclient/.run
 /ddclient/config/ddclient.conf
+dumpcert/docker-compose.yml.xxx
+dumpcert/letsencrypt/acme.json
+dumpcert/letsencrypt/certificate.pem
+dumpcert/letsencrypt/privatekey.pem
+dumpcert/letsencrypt/dump/certs/grooms.page.crt
+dumpcert/letsencrypt/dump/private/grooms.page.key
+dumpcert/letsencrypt/dump/private/letsencrypt.key

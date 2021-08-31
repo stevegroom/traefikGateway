@@ -82,9 +82,9 @@ risk for more secure applications, so may want some dedicated certificates for m
 - Edit each .env file with your values
   
 For the first execution, keycloak is not yet set up so cannot be used for logon.
-Edit ```traefik/docker-compose.yml``` lines 377 / 379 uncomment
+Edit ```traefik/docker-compose.yml``` lines 412 / 414 uncomment
 ```traefik.http.routers.traefik.middlewares=usersfile@file``` and comment out
-```traefik.http.routers.traefik.middlewares=keycloakForwardAuth@docker```
+```traefik.http.routers.traefik.middlewares=MyForwardAuth@docker```
 
 - Copy usersfile.htpasswd from confModel to conf
 - Create an .htpassword format user record in this file (google 'create .htpasswd webpage')

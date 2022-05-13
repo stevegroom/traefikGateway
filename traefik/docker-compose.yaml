@@ -67,6 +67,10 @@ services:
   ##############################################
   keycloak-db:
     image: postgres
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     container_name: keycloak-db
     networks:
       - keycloak
@@ -102,6 +106,10 @@ services:
   #########################################################
   keycloak-db-backup:
     image: postgres
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     container_name: keycloak-db-backup
     networks:
       - keycloak
@@ -140,6 +148,10 @@ services:
   keycloak:
 #   image: quay.io/keycloak/keycloak:latest
     image: jboss/keycloak
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     container_name: keycloak
     domainname: ${DOMAINNAME}
 #   ports:
@@ -215,6 +227,10 @@ services:
   #########################################################
   traefik-forward-auth:
     image: thomseddon/traefik-forward-auth:2
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 #   image: thomseddon/traefik-forward-auth
 #   image: funkypenguin/traefik-forward-auth
@@ -287,8 +303,8 @@ services:
       - "traefik.http.routers.traefik-forward-auth.tls.domains[0].sans=*.${DOMAINNAME}"
 
       # Forward authentication to keycloak      
-      #- "traefik.http.routers.traefik-forward-auth.middlewares=keycloakForwardAuth"
-      - "traefik.http.routers.traefik-forward-auth.middlewares=myForwardAuth@file"
+      ##- "traefik.http.routers.traefik-forward-auth.middlewares=keycloakForwardAuth"
+      #- "traefik.http.routers.traefik-forward-auth.middlewares=myForwardAuth@file"
 
       - "traefik.http.middlewares.keycloakForwardAuth.forwardauth.address=http://traefik-forward-auth:4181/auth" 
 #      - "traefik.http.routers.traefik-forward-auth.middlewares=secured"
@@ -314,11 +330,15 @@ services:
   #########################################################
   traefik:
     
-    image: traefik:v2.4
+    image: traefik:v2.6
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     container_name: traefik
     command: 
-#     - "--accesslog=true"
-#      - "--log.level=DEBUG"
+      - "--accesslog=true"
+      - "--log.level=WARNING"
       - "--ping=true"
 #      - "--ping.entrypoint=pingport"
 
@@ -329,11 +349,11 @@ services:
       # Define the ports Traefik listens on
       - "--entrypoints.web.address=:80" #Declares the web entrypoint in Traefik
       - "--entrypoints.websecure.address=:443" #Declares the websecure entrypoint in Traefik
-      - "--entrypoints.apiport.address=:10080" #Declares the webapi entrypoint in Traefik
-      - "--entrypoints.pingport.address=:10081"
-      - "--entrypoints.ssh.address=:10022/tcp"
+      #- "--entrypoints.apiport.address=:10080" #Declares the webapi entrypoint in Traefik
+      #- "--entrypoints.pingport.address=:10081"
       - "--entrypoints.httpauthforward.address=:4181"
-      
+
+      - "--entrypoints.ssh.address=:10022/tcp"
       - "--entrypoints.ssh.proxyProtocol.insecure=true"
       - "--entrypoints.ssh.forwardedHeaders.insecure=true"
         
@@ -356,7 +376,7 @@ services:
       - "--providers.file.directory=/conf"
       - "--providers.file.watch=true"
       
-      - "--tracing=true"
+      - "--tracing=false"
       - "--tracing.serviceName=traefik"
       - "--tracing.jaeger=true"
       - "--tracing.jaeger.samplingServerURL=http://localhost:5778/sampling"
@@ -365,7 +385,9 @@ services:
       - "--tracing.jaeger.traceContextHeaderName=uber-trace-id"
       - "--tracing.jaeger.collector.endpoint=http://jaeger-collector:14268/api/traces?format=jaeger.thrift"
 
-      - "--pilot.token=7dfa8bcd-95a5-4140-bef3-8ec0fdfbe004"
+      - "--pilot.token=024ce057-f4da-46df-a406-417cf0bf2679"
+      #- "--pilot.token=7dfa8bcd-95a5-4140-bef3-8ec0fdfbe004"
+      #- "--pilot.token=5b168ddb-e421-4ddc-a763-8c1bec02ca61"
   
 
     environment:
@@ -409,9 +431,9 @@ services:
       #- "traefik.http.routers.api.middlewares=websecure"
 
       # Basic authentication by file
-      # - "traefik.http.routers.traefik.middlewares=usersfile@file"
+      - "traefik.http.routers.traefik.middlewares=users@file"
       # Forward authentication to keycloak for logon
-      - "traefik.http.routers.traefik.middlewares=myForwardAuth@file"
+      #- "traefik.http.routers.traefik.middlewares=myForwardAuth@file"
 
 #      - "traefik.http.routers.traefik.service=traefik"
 #      - "traefik.http.services.traefik.loadbalancer.server.port=4181"
@@ -428,10 +450,7 @@ services:
       - "traefik.http.routers.traefik.tls.domains[0].main=${DOMAINNAME}"
       - "traefik.http.routers.traefik.tls.domains[0].sans=*.${DOMAINNAME}"
 
-
     restart: always
-
-
 
   #########################################################
   #########################################################
@@ -444,6 +463,10 @@ services:
   whoami1:
     # A container that exposes an API to show its IP address
     image: containous/whoami
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - traefik
 
@@ -459,7 +482,7 @@ services:
       - "traefik.http.routers.whoami1.entrypoints=websecure"
 
       # Forward authentication to keycloak for logon
-      - "traefik.http.routers.whoami1.middlewares=myForwardAuth@file"
+      #- "traefik.http.routers.whoami1.middlewares=myForwardAuth@file"
       
       # The application (i.e. this container)
       - "traefik.http.routers.whoami1.service=whoami1"

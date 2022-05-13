@@ -83,7 +83,7 @@ risk for more secure applications, so may want some dedicated certificates for m
   
 For the first execution, keycloak is not yet set up so cannot be used for logon.
 Edit ```traefik/docker-compose.yml``` lines 377 / 379 uncomment
-```traefik.http.routers.traefik.middlewares=usersfile@file``` and comment out
+```traefik.http.routers.traefik.middlewares=users@file``` and comment out
 ```traefik.http.routers.traefik.middlewares=keycloakForwardAuth@docker```
 
 - Copy usersfile.htpasswd from confModel to conf
@@ -143,3 +143,23 @@ traefik                 | time="2020-10-31T12:04:52+01:00" level=info msg="Skipp
 
 This means that some config elements found in a file provider are already defined, but are not
 contradicting what is defined previously.
+
+## Extract the cert from the acme.json file
+
+```bash
+cd letsencrypt
+cat acme.json | jq -r '.basic.Certificates[] | select(.domain.main=="'grooms.page'") | .certificate' | base64 -d > grooms.page.crt
+cat acme.json | jq -r '.basic.Certificates[] | select(.domain.main=="'grooms.page'") | .key' | base64 -d > grooms.page.key
+
+```
+
+Results in:
+
+```bash
+steve@nucnuc2:~/traefikGatewayOuter/traefik/letsencrypt$ lltotal 44
+drwx------ 2 steve steve  4096 Feb  1 15:29 ./
+drwx------ 6 steve steve  4096 Jan  8 17:12 ../
+-rwx------ 1 steve steve 26398 Dec  7 12:17 acme.json*
+-rwx------ 1 steve steve    23 Feb 19  2020 .gitignore*
+-rw-rw-r-- 1 steve steve  3917 Feb  1 15:38 grooms.page.crt
+```

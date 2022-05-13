@@ -2,6 +2,6 @@
 http:
   # Add the middleware
   middlewares:
-    usersfile:
+    users:
       basicAuth:
         usersFile: /conf/usersfile.htpasswd

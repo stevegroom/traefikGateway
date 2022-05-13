@@ -1,0 +1,54 @@
+version: '3.7'
+  #########################################################
+  #########################################################
+  ##
+  ## WHOAMITCP
+  ## Test app to show IP address and other discovered 
+  ## information
+  #########################################################
+  #########################################################
+services:
+  whoamitcp:
+    # A container that exposes an API to show its IP address
+    image: containous/whoamitcp
+
+    # networks:
+    #   - traefik
+
+    command:
+      - "--banner=true"
+      - "--name='Whats in a name'"
+      - "--port=whoamitcp:11122"
+
+    ports: 
+      - "11122:11122"
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.port=11122/tcp"
+
+      # Define the URL to access this app
+      - "traefik.tcp.routers.whoamitcp.rule=HostSNI(`*`)"
+
+      # Access via TCP only
+      - "traefik.tcp.routers.whoamitcp.entrypoints=ssh"
+      
+      # Forward authentication to keycloak for logon
+      #- "traefik.tcp.routers.whoamitcp.middlewares=keycloakForwardAuth@docker"
+      
+      # The application (i.e. this container)
+      - "traefik.tcp.routers.whoamitcp.service=whoamitcp"
+      - "traefik.tcp.services.whoamitcp.loadbalancer.server.port=11122"
+
+      # TLS is used to protect the domain
+      - "traefik.tcp.routers.whoamitcp.tls=true"
+      - "traefik.tcp.routers.whoamitcp.tls.certresolver=leresolver"
+      - "traefik.tcp.routers.whoamitcp.tls.domains[0].main=${DOMAINNAME}"
+      - "traefik.tcp.routers.whoamitcp.tls.domains[0].sans=*.${DOMAINNAME}"
+      - "traefik.tcp.routers.whoamitcp.tls.passthrough=true"
+
+networks:
+  default:
+    external:
+      name: traefik

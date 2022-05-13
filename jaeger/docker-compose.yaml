@@ -46,6 +46,10 @@ services:
     restart: on-failure
     depends_on:
       - cassandra-schema
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   jaeger-query:
     #############################################################################################
@@ -59,6 +63,10 @@ services:
     #############################################################################################
     #############################################################################################
     image: jaegertracing/jaeger-query
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - traefik
     command: ["--cassandra.keyspace=jaeger_v1_dc1", "--cassandra.servers=cassandra"]
@@ -100,6 +108,10 @@ services:
     #############################################################################################
     #############################################################################################
     image: jaegertracing/jaeger-agent
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - traefik
     command: ["--reporter.grpc.host-port=jaeger-collector:14250"]
@@ -124,6 +136,10 @@ services:
     #############################################################################################
     #############################################################################################
     image: cassandra:3.9
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - traefik
 
@@ -139,6 +155,10 @@ services:
     #############################################################################################
     #############################################################################################
     image: jaegertracing/jaeger-cassandra-schema
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - traefik
     depends_on:

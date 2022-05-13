@@ -1,0 +1,53 @@
+version: '3.7'
+  #########################################################
+  #########################################################
+  ##
+  ## UBUNTU
+  ## Testing ssh ingress to Ubuntu
+  ## information
+  #########################################################
+  #########################################################
+services:
+  ubuntu:
+    # A container that exposes an API to show its IP address
+    image: ubuntu
+
+    # networks:
+    #   - traefik
+
+#    command:
+#      - "--banner=true"
+
+
+    ports: 
+      - "10023:22"
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.port=10023/tcp"
+
+      # Define the URL to access this app
+      - "traefik.tcp.routers.ubuntu.rule=HostSNI(`*`)"
+
+      # Access via TCP only
+      - "traefik.tcp.routers.ubuntu.entrypoints=ssh"
+      
+      # Forward authentication to keycloak for logon
+      #- "traefik.tcp.routers.ubuntu.middlewares=keycloakForwardAuth@docker"
+      
+      # The application (i.e. this container)
+      - "traefik.tcp.routers.ubuntu.service=ubuntu"
+      - "traefik.tcp.services.ubuntu.loadbalancer.server.port=22"
+
+      # TLS is used to protect the domain
+      - "traefik.tcp.routers.ubuntu.tls=true"
+      - "traefik.tcp.routers.ubuntu.tls.certresolver=leresolver"
+      - "traefik.tcp.routers.ubuntu.tls.domains[0].main=${DOMAINNAME}"
+      - "traefik.tcp.routers.ubuntu.tls.domains[0].sans=*.${DOMAINNAME}"
+      - "traefik.tcp.routers.ubuntu.tls.passthrough=true"
+
+networks:
+  default:
+    external:
+      name: traefik

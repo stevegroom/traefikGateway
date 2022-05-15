@@ -67,6 +67,7 @@ services:
   ##############################################
   keycloak-db:
     image: postgres
+    restart: unless-stopped
     logging:
       options:
         max-size: "10m"
@@ -92,7 +93,6 @@ services:
 # Tell Postgress what user/password to create
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-#    restart: always
 
     command: ["postgres", "-c", "log_min_messages=INFO"]
 
@@ -148,6 +148,7 @@ services:
   keycloak:
 #   image: quay.io/keycloak/keycloak:latest
     image: jboss/keycloak
+    restart: unless-stopped
     logging:
       options:
         max-size: "10m"
@@ -209,7 +210,6 @@ services:
       - "traefik.http.routers.keycloak.tls.domains[0].main=${DOMAINNAME}"
       - "traefik.http.routers.keycloak.tls.domains[0].sans=*.${DOMAINNAME}"
 
-#   restart: always
     depends_on:
       - keycloak-db
 
@@ -227,6 +227,7 @@ services:
   #########################################################
   traefik-forward-auth:
     image: thomseddon/traefik-forward-auth:2
+    restart: unless-stopped
     logging:
       options:
         max-size: "10m"
@@ -260,7 +261,6 @@ services:
 #      COOKIE_SECURE: "true"
       - LIFETIME=2592000
 #      - LIFETIME=43200 # 12 hours
-    restart: always
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik"
@@ -331,6 +331,7 @@ services:
   traefik:
     
     image: traefik:v2.6
+    restart: unless-stopped
     logging:
       options:
         max-size: "10m"
@@ -450,7 +451,56 @@ services:
       - "traefik.http.routers.traefik.tls.domains[0].main=${DOMAINNAME}"
       - "traefik.http.routers.traefik.tls.domains[0].sans=*.${DOMAINNAME}"
 
-    restart: always
+
+  #########################################################
+  #########################################################
+  ##
+  ## Ingress sshd
+  ## 
+  ## 
+  ##
+  #########################################################
+  #########################################################
+  sshd:
+
+    image: ghcr.io/stevegroom/sshd:latest
+    restart: unless-stopped
+
+    ports:
+      - "122:22" # TCP Port   - ssh
+
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - "./conf/sshd/sshsavedhostkeys:/etc/sshsavedhostkeys:rw"
+      - "./conf/sshd/shelluserssh:/home/shelluser/.ssh:rw"
+
+    networks:
+      - traefik
+
+# Add physical hosts that to the sshd service to facilitate tunnelling
+# Variables are stored in .env
+    extra_hosts:
+      - ${SSHD_EXTRA_HOST1}
+      - ${SSHD_EXTRA_HOST2}
+      - ${SSHD_EXTRA_HOST3}
+      - ${SSHD_EXTRA_HOST4}
+
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    container_name: sshd
+
+    entrypoint: /entrypoint.sh
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.port=80"
+      - "traefik.tcp.routers.sshd.entrypoints=sshd"
+      - "traefik.tcp.routers.sshd.service=sshd"
+      - "traefik.tcp.routers.sshd.rule=HostSNI(`*`)"
 
   #########################################################
   #########################################################
@@ -463,6 +513,8 @@ services:
   whoami1:
     # A container that exposes an API to show its IP address
     image: containous/whoami
+    restart: unless-stopped
+
     logging:
       options:
         max-size: "10m"

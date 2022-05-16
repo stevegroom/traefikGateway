@@ -226,7 +226,7 @@ services:
   #########################################################
   #########################################################
   traefik-forward-auth:
-    image: thomseddon/traefik-forward-auth:2
+    image: thomseddon/traefik-forward-auth:2.2
     restart: unless-stopped
     logging:
       options:
@@ -304,7 +304,7 @@ services:
 
       # Forward authentication to keycloak      
       ##- "traefik.http.routers.traefik-forward-auth.middlewares=keycloakForwardAuth"
-      #- "traefik.http.routers.traefik-forward-auth.middlewares=myForwardAuth@file"
+      - "traefik.http.routers.traefik-forward-auth.middlewares=myForwardAuth@file"
 
       - "traefik.http.middlewares.keycloakForwardAuth.forwardauth.address=http://traefik-forward-auth:4181/auth" 
 #      - "traefik.http.routers.traefik-forward-auth.middlewares=secured"
@@ -534,7 +534,7 @@ services:
       - "traefik.http.routers.whoami1.entrypoints=websecure"
 
       # Forward authentication to keycloak for logon
-      #- "traefik.http.routers.whoami1.middlewares=myForwardAuth@file"
+      - "traefik.http.routers.whoami1.middlewares=myForwardAuth@file"
       
       # The application (i.e. this container)
       - "traefik.http.routers.whoami1.service=whoami1"
